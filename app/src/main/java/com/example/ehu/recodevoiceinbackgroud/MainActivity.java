@@ -9,6 +9,7 @@ import android.widget.ToggleButton;
 
 public class MainActivity extends AppCompatActivity {
     ToggleButton toggle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -19,10 +20,10 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     Log.d("onCheckedChanged", "R.id.toggleServiceButton is enabled");
 
-                    startService(new Intent(getBaseContext(),RecordVoiceService.class));
+                    startService(new Intent(getBaseContext(), RecordVoiceService.class));
                 } else {
                     Log.d("onCheckedChanged", "R.id.toggleServiceButton is disable");
-                    stopService(new Intent(getBaseContext(),RecordVoiceService.class));
+                    stopService(new Intent(getBaseContext(), RecordVoiceService.class));
                 }
             }
         });
