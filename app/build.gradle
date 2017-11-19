@@ -27,7 +27,9 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
     // https://mvnrepository.com/artifact/com.google.cloud/google-cloud-speech
-    compile group: 'com.google.cloud', name: 'google-cloud-speech', version: '0.29.0-alpha'
-
+//    compile group: 'com.google.cloud', name: 'google-cloud-speech', version: '0.29.0-alpha'
+    compile files('libs/JTransforms-3.1-javadoc.jar')
+    compile files('libs/JTransforms-3.1-sources.jar')
+    compile files('libs/JTransforms-3.1-with-dependencies.jar')
 }
 
