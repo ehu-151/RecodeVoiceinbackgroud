@@ -17,11 +17,14 @@ import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.jtransforms.fft.DoubleFFT_1D;
+
+import java.io.File;
 
 /**
  * Created by kaikoro on 2017/11/13.
@@ -38,6 +41,16 @@ public class RecordVoiceService extends Service {
     final static int FFT_SIZE = 4096;
     //ｄBFSの計算式の元
     double dB_baseline = Math.pow(2, 15) * FFT_SIZE * Math.sqrt(2);
+    int count;
+    short wav[];
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        wav = new short[FFT_SIZE * 10 * 2];
+        count = 0;
+        Log.d("LifeCycle", "onCreate");
+    }
 
     @Nullable
     @Override
@@ -46,16 +59,18 @@ public class RecordVoiceService extends Service {
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d("LifeCycle", "onCreate");
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startRecordVoice();
         Log.d("LifeCycle", "onStartCommand");
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("LifeCycle", "onDestroy");
+        stopRecordVoice();
+        Log.d("RecordingState", String.valueOf(audioRecord.getRecordingState()));
     }
 
 
@@ -70,11 +85,6 @@ public class RecordVoiceService extends Service {
         }
     }
 
-
-    public void getVoice() {
-
-    }
-
     //録音停止
     private void stopRecordVoice() {
         //録音フラグを停止にする
@@ -82,13 +92,6 @@ public class RecordVoiceService extends Service {
         Log.d("bIsRecording", String.valueOf(bIsRecording));
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d("LifeCycle", "onDestroy");
-        stopRecordVoice();
-        Log.d("RecordingState", String.valueOf(audioRecord.getRecordingState()));
-    }
 
     //初期化
     public void initAudioRecord() {
@@ -104,18 +107,23 @@ public class RecordVoiceService extends Service {
         Log.d("RecordingState", String.valueOf(audioRecord.getRecordingState()));
     }
 
+
     //録音開始する、停止が押されるまで録音する
     private void startAudioRecorder() {
+        Log.d("wava", "wav" + wav);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
+                Log.d("wava", "wav" + wav);
+
                 bIsRecording = true;
                 short buf[] = new short[bufferSize];
                 audioRecord.startRecording();
                 //stopRecordVoice()が呼ばれるまでbufに書き込む
                 while (bIsRecording) {
                     //bufに音声データを格納
-                    audioRecord.read(buf, 0, buf.length);
+                    audioRecord.read(buf, 0, FFT_SIZE);
                     Log.d("RecordingState", String.valueOf(audioRecord.getRecordingState()));
 
                     //FFTで解析
@@ -140,6 +148,21 @@ public class RecordVoiceService extends Service {
                         }
                     }
                     Log.d("db", "Hz" + (44100 / (double) FFT_SIZE) * max_i + "maxdb" + max_db);
+                    //大きい音を検知したら、2秒間だけ録音
+                    if (max_db > -60) {
+                        System.arraycopy(buf, 0, wav, count * FFT_SIZE, FFT_SIZE);
+                        count++;
+                    }
+                    if (count != 0) {
+                        System.arraycopy(buf, 0, wav, count * FFT_SIZE, FFT_SIZE);
+                        Log.d("wav", "recording");
+                        count++;
+                        if (count == 20) {
+                            count = 0;
+                            wav = new short[FFT_SIZE * 10 * 2];
+                            Log.d("wav", "reset");
+                        }
+                    }
                 }
                 // 録音停止
                 audioRecord.stop();

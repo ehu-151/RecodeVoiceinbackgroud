@@ -1,14 +1,14 @@
 package com.example.ehu.recodevoiceinbackgroud;
 
-import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.ToggleButton;
 
 public class MainActivity extends AppCompatActivity {
     ToggleButton toggle;
+    SpeechRecognizerTest sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,11 +19,13 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     Log.d("onCheckedChanged", "R.id.toggleServiceButton is enabled");
-
-                    startService(new Intent(getBaseContext(), RecordVoiceService.class));
+                    sp = new SpeechRecognizerTest(getApplicationContext());
+                    sp.startSpeechRecognition();
+//                    startService(new Intent(getBaseContext(), RecordVoiceService.class));
                 } else {
                     Log.d("onCheckedChanged", "R.id.toggleServiceButton is disable");
-                    stopService(new Intent(getBaseContext(), RecordVoiceService.class));
+                    sp.stopSpeechRecognition();
+//                    stopService(new Intent(getBaseContext(), RecordVoiceService.class));
                 }
             }
         });
